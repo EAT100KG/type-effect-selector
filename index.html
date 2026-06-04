@@ -931,15 +931,18 @@
           ['durationFrames', 'frames', Number],
         ];
 
+        const handleControlChange = (id, key, transform, event) => {
+          state[key] = transform ? transform(event.target.value) : event.target.value;
+          if (id === 'fillColor') refs.fillText.value = state.fill;
+          if (id === 'fillText') refs.fillColor.value = normalizeColor(state.fill, refs.fillColor.value);
+          if (id === 'accentColor') refs.accentText.value = state.accent;
+          if (id === 'accentText') refs.accentColor.value = normalizeColor(state.accent, refs.accentColor.value);
+          renderAll(false);
+        };
+
         bindings.forEach(([id, key, transform]) => {
-          refs[id].addEventListener('input', (event) => {
-            state[key] = transform ? transform(event.target.value) : event.target.value;
-            if (id === 'fillColor') refs.fillText.value = state.fill;
-            if (id === 'fillText') refs.fillColor.value = normalizeColor(state.fill, refs.fillColor.value);
-            if (id === 'accentColor') refs.accentText.value = state.accent;
-            if (id === 'accentText') refs.accentColor.value = normalizeColor(state.accent, refs.accentColor.value);
-            renderAll(false);
-          });
+          const eventName = refs[id].tagName === 'SELECT' ? 'change' : 'input';
+          refs[id].addEventListener(eventName, (event) => handleControlChange(id, key, transform, event));
         });
 
         document.getElementById('copyButton').addEventListener('click', copyExport);
