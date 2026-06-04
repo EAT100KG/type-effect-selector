@@ -1,0 +1,1148 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>文字效果选择器</title>
+    <style>
+      :root {
+        --bg: #f4f1ea;
+        --panel: rgba(255, 255, 255, 0.72);
+        --panel-strong: #ffffff;
+        --ink: #171717;
+        --muted: #6f746f;
+        --line: rgba(23, 23, 23, 0.12);
+        --accent: #246bfe;
+        --radius: 8px;
+        --shadow: 0 28px 80px rgba(30, 34, 40, 0.13);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 16% 12%, rgba(36, 107, 254, 0.08), transparent 26%),
+          radial-gradient(circle at 84% 18%, rgba(198, 161, 91, 0.12), transparent 28%),
+          linear-gradient(135deg, #f7f5ef, var(--bg));
+        color: var(--ink);
+        font-family: Inter, "PingFang SC", "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        letter-spacing: 0;
+      }
+
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
+      }
+
+      button {
+        border: 0;
+        cursor: pointer;
+      }
+
+      .shell {
+        display: grid;
+        grid-template-rows: auto 1fr;
+        min-height: 100vh;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 22px 28px 18px;
+        border-bottom: 1px solid var(--line);
+        backdrop-filter: blur(18px);
+      }
+
+      .brand {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .brand-title {
+        font-size: 22px;
+        font-weight: 780;
+      }
+
+      .brand-subtitle {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .top-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        height: 38px;
+        padding: 0 14px;
+        border-radius: 7px;
+        background: #161616;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 680;
+      }
+
+      .button.secondary {
+        background: rgba(255, 255, 255, 0.62);
+        color: var(--ink);
+        border: 1px solid var(--line);
+      }
+
+      .workspace {
+        display: grid;
+        grid-template-columns: 300px minmax(420px, 1fr) 360px;
+        gap: 18px;
+        padding: 18px;
+        min-height: 0;
+      }
+
+      .panel {
+        min-height: 0;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--panel);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(22px);
+        overflow: hidden;
+      }
+
+      .panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 16px 12px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .panel-title {
+        font-size: 14px;
+        font-weight: 780;
+      }
+
+      .panel-note {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .template-list {
+        display: grid;
+        gap: 8px;
+        padding: 12px;
+        overflow: auto;
+      }
+
+      .template-card {
+        display: grid;
+        gap: 6px;
+        padding: 12px;
+        border: 1px solid rgba(23, 23, 23, 0.1);
+        border-radius: 7px;
+        background: rgba(255, 255, 255, 0.46);
+        text-align: left;
+        transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+      }
+
+      .template-card:hover {
+        transform: translateY(-1px);
+        border-color: rgba(36, 107, 254, 0.28);
+      }
+
+      .template-card.active {
+        background: rgba(255, 255, 255, 0.86);
+        border-color: rgba(36, 107, 254, 0.58);
+      }
+
+      .template-name {
+        font-size: 14px;
+        font-weight: 760;
+      }
+
+      .template-desc {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.4;
+      }
+
+      .swatches {
+        display: flex;
+        gap: 6px;
+      }
+
+      .swatch {
+        width: 18px;
+        height: 18px;
+        border-radius: 99px;
+        border: 1px solid rgba(0, 0, 0, 0.13);
+      }
+
+      .preview-panel {
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+      }
+
+      .preview-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .segmented {
+        display: inline-flex;
+        padding: 3px;
+        border-radius: 7px;
+        background: rgba(23, 23, 23, 0.07);
+      }
+
+      .segmented button {
+        min-width: 58px;
+        height: 30px;
+        padding: 0 10px;
+        border-radius: 5px;
+        background: transparent;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 650;
+        white-space: nowrap;
+      }
+
+      .segmented button.active {
+        background: #fff;
+        color: var(--ink);
+        box-shadow: 0 5px 14px rgba(20, 20, 20, 0.1);
+      }
+
+      .preview-stage-wrap {
+        display: grid;
+        place-items: center;
+        min-height: 0;
+        padding: 22px;
+      }
+
+      .preview-stage {
+        position: relative;
+        width: min(100%, 980px);
+        aspect-ratio: 16 / 9;
+        overflow: hidden;
+        border-radius: 8px;
+        background: #162033;
+        box-shadow: 0 32px 90px rgba(25, 30, 38, 0.22);
+      }
+
+      .preview-stage.vertical {
+        width: min(54%, 430px);
+        aspect-ratio: 9 / 16;
+      }
+
+      .test-footage {
+        position: absolute;
+        inset: -8%;
+        background:
+          radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.2), transparent 20%),
+          radial-gradient(circle at 78% 20%, rgba(147, 197, 253, 0.28), transparent 22%),
+          radial-gradient(circle at 56% 76%, rgba(255, 229, 138, 0.16), transparent 23%),
+          linear-gradient(135deg, #142033, #3b5574 35%, #b98f58 64%, #1c1d26);
+      }
+
+      .stage-scrim {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(15, 23, 42, 0.1), rgba(15, 23, 42, 0.05) 42%, rgba(15, 23, 42, 0.22));
+      }
+
+      .safe-frame {
+        position: absolute;
+        inset: 7% 8%;
+        border: 1px dashed rgba(255, 255, 255, 0.22);
+        border-radius: 4px;
+        pointer-events: none;
+        opacity: 0;
+      }
+
+      .preview-stage.show-safe .safe-frame {
+        opacity: 1;
+      }
+
+      .text-layer {
+        position: absolute;
+        max-width: 76%;
+        white-space: pre-line;
+        line-height: 1.08;
+        letter-spacing: 0;
+        transform-origin: center;
+      }
+
+      .text-layer.center {
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+      }
+
+      .text-layer.left {
+        left: 10%;
+        top: 43%;
+        transform: translateY(-50%);
+        text-align: left;
+      }
+
+      .text-layer.lower {
+        left: 50%;
+        bottom: 16%;
+        transform: translateX(-50%);
+        text-align: center;
+      }
+
+      .text-layer.side {
+        right: 9%;
+        top: 18%;
+        writing-mode: vertical-rl;
+        text-align: left;
+        max-height: 72%;
+      }
+
+      .text-layer.fadeRise {
+        animation: fadeRise 1800ms ease-out infinite alternate;
+      }
+
+      .text-layer.softPop {
+        animation: softPop 1500ms cubic-bezier(0.2, 0.7, 0.2, 1) infinite alternate;
+      }
+
+      .text-layer.maskReveal {
+        animation: maskReveal 1800ms ease-out infinite alternate;
+      }
+
+      .text-layer.slowFade {
+        animation: slowFade 2200ms ease-in-out infinite alternate;
+      }
+
+      .text-layer.cutIn {
+        animation: cutIn 1200ms steps(2, end) infinite alternate;
+      }
+
+      @keyframes fadeRise {
+        from { opacity: 0.28; translate: 0 18px; }
+        to { opacity: 1; translate: 0 0; }
+      }
+
+      @keyframes softPop {
+        from { opacity: 0.72; scale: 0.965; }
+        to { opacity: 1; scale: 1; }
+      }
+
+      @keyframes maskReveal {
+        from { clip-path: inset(0 0 100% 0); opacity: 0.52; }
+        to { clip-path: inset(0 0 0 0); opacity: 1; }
+      }
+
+      @keyframes slowFade {
+        from { opacity: 0.45; }
+        to { opacity: 1; }
+      }
+
+      @keyframes cutIn {
+        from { opacity: 0.55; }
+        to { opacity: 1; }
+      }
+
+      .stage-caption {
+        position: absolute;
+        left: 20px;
+        bottom: 16px;
+        color: rgba(255, 255, 255, 0.68);
+        font-size: 12px;
+        font-weight: 650;
+        letter-spacing: 1.4px;
+        text-transform: uppercase;
+      }
+
+      .control-scroll {
+        display: grid;
+        gap: 16px;
+        padding: 14px;
+        overflow: auto;
+        max-height: calc(100vh - 122px);
+      }
+
+      .control-group {
+        display: grid;
+        gap: 10px;
+        padding: 13px;
+        border: 1px solid rgba(23, 23, 23, 0.1);
+        border-radius: 7px;
+        background: rgba(255, 255, 255, 0.5);
+      }
+
+      .control-group h3 {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 780;
+      }
+
+      .field {
+        display: grid;
+        gap: 6px;
+      }
+
+      .field label {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 680;
+      }
+
+      .field input,
+      .field select,
+      .field textarea {
+        width: 100%;
+        border: 1px solid rgba(23, 23, 23, 0.14);
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.78);
+        color: var(--ink);
+        min-height: 36px;
+        padding: 8px 10px;
+      }
+
+      .field textarea {
+        min-height: 96px;
+        resize: vertical;
+        font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .color-row {
+        display: grid;
+        grid-template-columns: 42px 1fr;
+        gap: 8px;
+        align-items: center;
+      }
+
+      input[type="color"] {
+        padding: 2px;
+      }
+
+      .range-row {
+        display: grid;
+        grid-template-columns: 1fr 44px;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .export-box {
+        display: grid;
+        gap: 10px;
+      }
+
+      .export-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .toast {
+        position: fixed;
+        left: 50%;
+        bottom: 26px;
+        transform: translateX(-50%);
+        padding: 10px 14px;
+        border-radius: 7px;
+        background: rgba(23, 23, 23, 0.88);
+        color: #fff;
+        font-size: 13px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 180ms ease;
+      }
+
+      .toast.show {
+        opacity: 1;
+      }
+
+      @media (max-width: 1180px) {
+        .workspace {
+          grid-template-columns: 260px 1fr;
+        }
+
+        .panel.controls {
+          grid-column: 1 / -1;
+        }
+      }
+
+      @media (max-width: 820px) {
+        .topbar,
+        .workspace {
+          padding-left: 12px;
+          padding-right: 12px;
+        }
+
+        .workspace {
+          grid-template-columns: 1fr;
+        }
+
+        .preview-stage.vertical {
+          width: min(72%, 380px);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-title">文字效果选择器</div>
+          <div class="brand-subtitle">给甲方选择字体、配色、动画，并导出 Remotion 配置</div>
+        </div>
+        <div class="top-actions">
+          <button class="button secondary" id="resetButton">重置当前模板</button>
+          <button class="button" id="downloadTopButton">导出配置</button>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <aside class="panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">模板</div>
+              <div class="panel-note">按题材选择基准风格</div>
+            </div>
+          </div>
+          <div class="template-list" id="templateList"></div>
+        </aside>
+
+        <section class="panel preview-panel">
+          <div class="preview-toolbar">
+            <div>
+              <div class="panel-title">实时预览</div>
+              <div class="panel-note" id="activeDescription">透明花字，无描边，软光影</div>
+            </div>
+            <div class="segmented" aria-label="预览比例">
+              <button id="ratio169" class="active">16:9</button>
+              <button id="ratio916">9:16</button>
+              <button id="safeButton">安全区</button>
+            </div>
+          </div>
+          <div class="preview-stage-wrap">
+            <div class="preview-stage" id="previewStage">
+              <div class="test-footage"></div>
+              <div class="stage-scrim"></div>
+              <div class="safe-frame"></div>
+              <div class="text-layer center fadeRise" id="textLayer">反馈越快\n成长越快</div>
+              <div class="stage-caption" id="stageCaption">knowledge / fade-rise / no stroke</div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="panel controls">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">参数</div>
+              <div class="panel-note">手动微调后导出</div>
+            </div>
+          </div>
+          <div class="control-scroll">
+            <div class="control-group">
+              <h3>文字</h3>
+              <div class="field">
+                <label for="sampleText">预览文字</label>
+                <textarea id="sampleText"></textarea>
+              </div>
+              <div class="field">
+                <label for="fontSelect">字体</label>
+                <select id="fontSelect"></select>
+              </div>
+              <div class="field">
+                <label for="layoutSelect">位置</label>
+                <select id="layoutSelect">
+                  <option value="center">居中标题</option>
+                  <option value="left">左侧信息块</option>
+                  <option value="lower">底部花字</option>
+                  <option value="side">侧边竖排</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="control-group">
+              <h3>颜色</h3>
+              <div class="field color-row">
+                <input id="fillColor" type="color" />
+                <div>
+                  <label for="fillColor">主文字色</label>
+                  <input id="fillText" type="text" />
+                </div>
+              </div>
+              <div class="field color-row">
+                <input id="accentColor" type="color" />
+                <div>
+                  <label for="accentColor">强调色</label>
+                  <input id="accentText" type="text" />
+                </div>
+              </div>
+              <div class="field">
+                <label for="colorMode">色彩模式</label>
+                <select id="colorMode">
+                  <option value="solid">纯色</option>
+                  <option value="gradient">主色到强调色渐变</option>
+                  <option value="keyword">局部强调色</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="control-group">
+              <h3>层级</h3>
+              <div class="field">
+                <label for="fontSize">字号</label>
+                <div class="range-row">
+                  <input id="fontSize" type="range" min="42" max="140" step="1" />
+                  <span id="fontSizeValue"></span>
+                </div>
+              </div>
+              <div class="field">
+                <label for="fontWeight">字重</label>
+                <div class="range-row">
+                  <input id="fontWeight" type="range" min="400" max="900" step="10" />
+                  <span id="fontWeightValue"></span>
+                </div>
+              </div>
+              <div class="field">
+                <label for="glowStrength">软光影</label>
+                <div class="range-row">
+                  <input id="glowStrength" type="range" min="0" max="100" step="1" />
+                  <span id="glowValue"></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="control-group">
+              <h3>动画</h3>
+              <div class="field">
+                <label for="animationSelect">动画方式</label>
+                <select id="animationSelect">
+                  <option value="fadeRise">淡入上移</option>
+                  <option value="softPop">轻微弹入</option>
+                  <option value="maskReveal">遮罩揭示</option>
+                  <option value="slowFade">慢淡入</option>
+                  <option value="cutIn">短促切入</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="durationFrames">建议动画帧数</label>
+                <div class="range-row">
+                  <input id="durationFrames" type="range" min="12" max="45" step="1" />
+                  <span id="durationValue"></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="control-group export-box">
+              <h3>导出</h3>
+              <textarea id="exportText" readonly></textarea>
+              <div class="export-actions">
+                <button class="button secondary" id="copyButton">复制 JSON</button>
+                <button class="button" id="downloadButton">下载 JSON</button>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <div class="toast" id="toast">已复制</div>
+
+    <script>
+      const fontOptions = [
+        { label: '现代黑体 / Inter + PingFang', value: 'Inter, PingFang SC, Noto Sans SC, sans-serif' },
+        { label: '科技理性 / Geist + Inter', value: 'Geist, Inter, Noto Sans SC, sans-serif' },
+        { label: '知识解释 / IBM Plex Sans', value: 'IBM Plex Sans, Inter, Noto Sans SC, sans-serif' },
+        { label: '财经数字 / Roboto Mono', value: 'Roboto Mono, IBM Plex Mono, Menlo, monospace' },
+        { label: '人文宋体 / Noto Serif SC', value: 'Noto Serif SC, Source Han Serif SC, Songti SC, serif' },
+        { label: '奢华衬线 / Didot', value: 'Didot, Bodoni 72, Playfair Display, Noto Serif SC, serif' },
+        { label: '生活温和 / Avenir Next', value: 'Avenir Next, Inter, PingFang SC, sans-serif' },
+        { label: '娱乐醒目 / Inter Tight', value: 'Inter Tight, Montserrat, HarmonyOS Sans SC, sans-serif' },
+      ];
+
+      const templates = [
+        {
+          id: 'knowledge',
+          name: '知识 / 教程',
+          description: '清晰解释、步骤、方法论。稳定层级，蓝色强调。',
+          text: '先拆变量\n再找约束',
+          font: fontOptions[2].value,
+          fill: '#F8FCFF',
+          accent: '#93C5FD',
+          mode: 'keyword',
+          size: 76,
+          weight: 780,
+          glow: 42,
+          animation: 'fadeRise',
+          frames: 24,
+          layout: 'left',
+        },
+        {
+          id: 'technology',
+          name: '科技 / AI',
+          description: '冷静、干净、发光感克制。适合产品和技术概念。',
+          text: '模型开始\n理解语境',
+          font: fontOptions[1].value,
+          fill: '#F4F9FF',
+          accent: '#7DD3FC',
+          mode: 'gradient',
+          size: 78,
+          weight: 820,
+          glow: 50,
+          animation: 'maskReveal',
+          frames: 22,
+          layout: 'center',
+        },
+        {
+          id: 'finance',
+          name: '财经 / 数据',
+          description: '数字敏感、信号明确。用语义色，不娱乐化。',
+          text: '现金流\n比利润更硬',
+          font: fontOptions[3].value,
+          fill: '#FFFFFF',
+          accent: '#86EFAC',
+          mode: 'keyword',
+          size: 72,
+          weight: 820,
+          glow: 48,
+          animation: 'fadeRise',
+          frames: 22,
+          layout: 'left',
+        },
+        {
+          id: 'humanities',
+          name: '人文 / 历史',
+          description: '宋体、暖白、暗金。安静，有文字重量。',
+          text: '时间深处\n自有回声',
+          font: fontOptions[4].value,
+          fill: '#FFF8EB',
+          accent: '#F7D77A',
+          mode: 'keyword',
+          size: 70,
+          weight: 600,
+          glow: 38,
+          animation: 'slowFade',
+          frames: 34,
+          layout: 'center',
+        },
+        {
+          id: 'lifestyle',
+          name: '生活 / 美食',
+          description: '温和、感性、轻松。暖色点睛，避免重黑体。',
+          text: '把日常\n过得有味道',
+          font: fontOptions[6].value,
+          fill: '#FFF7ED',
+          accent: '#FDBA74',
+          mode: 'gradient',
+          size: 72,
+          weight: 740,
+          glow: 42,
+          animation: 'fadeRise',
+          frames: 26,
+          layout: 'center',
+        },
+        {
+          id: 'documentary',
+          name: '新闻 / 纪实',
+          description: '事实优先、可信克制。可用柔红提醒。',
+          text: '关键事实\n必须被看见',
+          font: fontOptions[0].value,
+          fill: '#F8FAFC',
+          accent: '#FCA5A5',
+          mode: 'keyword',
+          size: 72,
+          weight: 820,
+          glow: 36,
+          animation: 'cutIn',
+          frames: 14,
+          layout: 'left',
+        },
+        {
+          id: 'luxury',
+          name: '时尚 / 奢华',
+          description: '衬线、留白、低饱和金。少就是多。',
+          text: '少一点\n更接近本质',
+          font: fontOptions[5].value,
+          fill: '#FFF8EE',
+          accent: '#E7C56A',
+          mode: 'keyword',
+          size: 70,
+          weight: 540,
+          glow: 36,
+          animation: 'slowFade',
+          frames: 30,
+          layout: 'center',
+        },
+        {
+          id: 'entertainment',
+          name: '娱乐 / 轻内容',
+          description: '更醒目但不荧光、不贴纸化。适合轻提示。',
+          text: '重点来了',
+          font: fontOptions[7].value,
+          fill: '#FFFFFF',
+          accent: '#FDA4AF',
+          mode: 'gradient',
+          size: 92,
+          weight: 860,
+          glow: 52,
+          animation: 'softPop',
+          frames: 16,
+          layout: 'center',
+        },
+      ];
+
+      let state = structuredClone(templates[0]);
+      let selectedTemplateId = state.id;
+      let showSafe = false;
+      let ratio = '16:9';
+
+      const refs = {
+        templateList: document.getElementById('templateList'),
+        activeDescription: document.getElementById('activeDescription'),
+        previewStage: document.getElementById('previewStage'),
+        textLayer: document.getElementById('textLayer'),
+        stageCaption: document.getElementById('stageCaption'),
+        sampleText: document.getElementById('sampleText'),
+        fontSelect: document.getElementById('fontSelect'),
+        layoutSelect: document.getElementById('layoutSelect'),
+        fillColor: document.getElementById('fillColor'),
+        fillText: document.getElementById('fillText'),
+        accentColor: document.getElementById('accentColor'),
+        accentText: document.getElementById('accentText'),
+        colorMode: document.getElementById('colorMode'),
+        fontSize: document.getElementById('fontSize'),
+        fontSizeValue: document.getElementById('fontSizeValue'),
+        fontWeight: document.getElementById('fontWeight'),
+        fontWeightValue: document.getElementById('fontWeightValue'),
+        glowStrength: document.getElementById('glowStrength'),
+        glowValue: document.getElementById('glowValue'),
+        animationSelect: document.getElementById('animationSelect'),
+        durationFrames: document.getElementById('durationFrames'),
+        durationValue: document.getElementById('durationValue'),
+        exportText: document.getElementById('exportText'),
+        toast: document.getElementById('toast'),
+      };
+
+      function init() {
+        renderTemplates();
+        renderFontOptions();
+        bindEvents();
+        syncControlsFromState();
+        renderAll();
+      }
+
+      function renderTemplates() {
+        refs.templateList.innerHTML = templates
+          .map((template) => `
+            <button class="template-card ${template.id === selectedTemplateId ? 'active' : ''}" data-template="${template.id}">
+              <div class="template-name">${template.name}</div>
+              <div class="template-desc">${template.description}</div>
+              <div class="swatches">
+                <span class="swatch" style="background:${template.fill}"></span>
+                <span class="swatch" style="background:${template.accent}"></span>
+                <span class="swatch" style="background:#162033"></span>
+              </div>
+            </button>
+          `)
+          .join('');
+      }
+
+      function renderFontOptions() {
+        refs.fontSelect.innerHTML = fontOptions
+          .map((font) => `<option value="${font.value}">${font.label}</option>`)
+          .join('');
+      }
+
+      function bindEvents() {
+        refs.templateList.addEventListener('click', (event) => {
+          const button = event.target.closest('[data-template]');
+          if (!button) return;
+          const template = templates.find((item) => item.id === button.dataset.template);
+          selectedTemplateId = template.id;
+          state = structuredClone(template);
+          renderTemplates();
+          syncControlsFromState();
+          renderAll();
+        });
+
+        document.getElementById('resetButton').addEventListener('click', () => {
+          const template = templates.find((item) => item.id === selectedTemplateId);
+          state = structuredClone(template);
+          syncControlsFromState();
+          renderAll();
+        });
+
+        document.getElementById('ratio169').addEventListener('click', () => setRatio('16:9'));
+        document.getElementById('ratio916').addEventListener('click', () => setRatio('9:16'));
+        document.getElementById('safeButton').addEventListener('click', () => {
+          showSafe = !showSafe;
+          renderStageChrome();
+        });
+
+        const bindings = [
+          ['sampleText', 'text'],
+          ['fontSelect', 'font'],
+          ['layoutSelect', 'layout'],
+          ['fillColor', 'fill'],
+          ['fillText', 'fill'],
+          ['accentColor', 'accent'],
+          ['accentText', 'accent'],
+          ['colorMode', 'mode'],
+          ['fontSize', 'size', Number],
+          ['fontWeight', 'weight', Number],
+          ['glowStrength', 'glow', Number],
+          ['animationSelect', 'animation'],
+          ['durationFrames', 'frames', Number],
+        ];
+
+        bindings.forEach(([id, key, transform]) => {
+          refs[id].addEventListener('input', (event) => {
+            state[key] = transform ? transform(event.target.value) : event.target.value;
+            if (id === 'fillColor') refs.fillText.value = state.fill;
+            if (id === 'fillText') refs.fillColor.value = normalizeColor(state.fill, refs.fillColor.value);
+            if (id === 'accentColor') refs.accentText.value = state.accent;
+            if (id === 'accentText') refs.accentColor.value = normalizeColor(state.accent, refs.accentColor.value);
+            renderAll(false);
+          });
+        });
+
+        document.getElementById('copyButton').addEventListener('click', copyExport);
+        document.getElementById('downloadButton').addEventListener('click', downloadExport);
+        document.getElementById('downloadTopButton').addEventListener('click', downloadExport);
+      }
+
+      function normalizeColor(value, fallback) {
+        return /^#[0-9A-Fa-f]{6}$/.test(value) ? value : fallback;
+      }
+
+      function syncControlsFromState() {
+        refs.sampleText.value = state.text;
+        refs.fontSelect.value = state.font;
+        refs.layoutSelect.value = state.layout;
+        refs.fillColor.value = normalizeColor(state.fill, '#ffffff');
+        refs.fillText.value = state.fill;
+        refs.accentColor.value = normalizeColor(state.accent, '#93c5fd');
+        refs.accentText.value = state.accent;
+        refs.colorMode.value = state.mode;
+        refs.fontSize.value = state.size;
+        refs.fontWeight.value = state.weight;
+        refs.glowStrength.value = state.glow;
+        refs.animationSelect.value = state.animation;
+        refs.durationFrames.value = state.frames;
+      }
+
+      function setRatio(nextRatio) {
+        ratio = nextRatio;
+        document.getElementById('ratio169').classList.toggle('active', ratio === '16:9');
+        document.getElementById('ratio916').classList.toggle('active', ratio === '9:16');
+        renderStageChrome();
+      }
+
+      function renderAll(restartAnimation = true) {
+        refs.activeDescription.textContent = state.description;
+        refs.fontSizeValue.textContent = state.size;
+        refs.fontWeightValue.textContent = state.weight;
+        refs.glowValue.textContent = state.glow;
+        refs.durationValue.textContent = `${state.frames}f`;
+        renderPreview(restartAnimation);
+        renderExport();
+      }
+
+      function renderStageChrome() {
+        refs.previewStage.classList.toggle('vertical', ratio === '9:16');
+        refs.previewStage.classList.toggle('show-safe', showSafe);
+        document.getElementById('safeButton').classList.toggle('active', showSafe);
+      }
+
+      function renderPreview(restartAnimation) {
+        const textLayer = refs.textLayer;
+        textLayer.className = `text-layer ${state.layout} ${state.animation}`;
+        textLayer.style.fontFamily = state.font;
+        textLayer.style.fontSize = `${state.size}px`;
+        textLayer.style.fontWeight = state.weight;
+        textLayer.style.textShadow = makeGlow(state.accent, state.glow);
+        textLayer.style.color = state.fill;
+        textLayer.style.backgroundImage = '';
+        textLayer.style.webkitBackgroundClip = '';
+
+        if (state.mode === 'gradient') {
+          textLayer.style.backgroundImage = `linear-gradient(100deg, ${state.fill}, ${state.accent})`;
+          textLayer.style.webkitBackgroundClip = 'text';
+          textLayer.style.color = 'transparent';
+          textLayer.textContent = state.text;
+        } else if (state.mode === 'keyword') {
+          textLayer.innerHTML = renderKeywordText(state.text, state.accent);
+        } else {
+          textLayer.textContent = state.text;
+        }
+
+        if (restartAnimation) {
+          textLayer.style.animation = 'none';
+          void textLayer.offsetHeight;
+          textLayer.style.animation = '';
+        }
+
+        refs.stageCaption.textContent = `${state.id} / ${state.animation} / ${state.frames}f / no stroke`;
+        renderStageChrome();
+      }
+
+      function renderKeywordText(text, accent) {
+        const parts = text.split('\n');
+        return parts
+          .map((line, index) => {
+            if (index === 0 && line.length > 2) {
+              const head = line.slice(0, Math.max(1, line.length - 2));
+              const tail = line.slice(Math.max(1, line.length - 2));
+              return `${escapeHtml(head)}<span style="color:${accent}">${escapeHtml(tail)}</span>`;
+            }
+            return escapeHtml(line);
+          })
+          .join('<br>');
+      }
+
+      function escapeHtml(value) {
+        return value.replace(/[&<>"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[char]));
+      }
+
+      function makeGlow(accent, strength) {
+        const alpha = Math.min(0.34, 0.1 + strength / 360);
+        const darkAlpha = Math.min(0.42, 0.18 + strength / 360);
+        return `0 8px 26px ${hexToRgba(accent, alpha)}, 0 16px 48px rgba(15,23,42,${darkAlpha})`;
+      }
+
+      function hexToRgba(hex, alpha) {
+        const value = normalizeColor(hex, '#ffffff').replace('#', '');
+        const r = parseInt(value.slice(0, 2), 16);
+        const g = parseInt(value.slice(2, 4), 16);
+        const b = parseInt(value.slice(4, 6), 16);
+        return `rgba(${r},${g},${b},${alpha.toFixed(2)})`;
+      }
+
+      function makeExportObject() {
+        return {
+          schema: 'remotion-flower-text-style/v1',
+          exportedAt: new Date().toISOString(),
+          template: {
+            id: state.id,
+            name: state.name,
+            description: state.description,
+          },
+          text: {
+            sample: state.text,
+            mode: state.mode,
+          },
+          typography: {
+            fontFamily: state.font,
+            fontSize: state.size,
+            fontWeight: state.weight,
+            lineHeight: state.layout === 'side' ? 1.15 : 1.08,
+            letterSpacing: 0,
+          },
+          colors: {
+            fill: state.fill,
+            accent: state.accent,
+            glow: makeGlow(state.accent, state.glow),
+            noStroke: true,
+            noBackgroundCard: true,
+          },
+          layout: {
+            position: state.layout,
+            safeArea: true,
+            aspectRatio: ratio,
+          },
+          animation: {
+            name: state.animation,
+            durationInFrames: state.frames,
+            drivenByRemotionFrame: true,
+            recommendedEasing: animationEasing(state.animation),
+          },
+          redlineCompliance: {
+            maxFontFamilies: 2,
+            avoidsGenericStickerFonts: true,
+            avoidsThickOutline: true,
+            avoidsFluorescentColors: true,
+            requiresReadableContrast: true,
+          },
+          remotionHints: {
+            componentName: pascalCase(state.id) + 'FlowerText',
+            useTextShadow: true,
+            useWebkitTextStroke: false,
+            useAbsoluteFill: true,
+            suggestedImports: ['AbsoluteFill', 'interpolate', 'spring', 'useCurrentFrame', 'useVideoConfig'],
+          },
+        };
+      }
+
+      function animationEasing(animation) {
+        const map = {
+          fadeRise: 'Easing.out(Easing.cubic)',
+          softPop: 'spring({ damping: 16, stiffness: 150 })',
+          maskReveal: 'Easing.out(Easing.cubic)',
+          slowFade: 'Easing.inOut(Easing.sin)',
+          cutIn: 'Easing.out(Easing.quad)',
+        };
+        return map[animation];
+      }
+
+      function pascalCase(value) {
+        return value
+          .split('-')
+          .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+          .join('');
+      }
+
+      function renderExport() {
+        refs.exportText.value = JSON.stringify(makeExportObject(), null, 2);
+      }
+
+      async function copyExport() {
+        const value = refs.exportText.value;
+        try {
+          await navigator.clipboard.writeText(value);
+          showToast('已复制 JSON');
+        } catch (error) {
+          refs.exportText.select();
+          document.execCommand('copy');
+          showToast('已选中并复制');
+        }
+      }
+
+      function downloadExport() {
+        const blob = new Blob([refs.exportText.value], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${state.id}-flower-text-style.json`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+        showToast('已下载配置');
+      }
+
+      function showToast(message) {
+        refs.toast.textContent = message;
+        refs.toast.classList.add('show');
+        window.setTimeout(() => refs.toast.classList.remove('show'), 1500);
+      }
+
+      init();
+    </script>
+  </body>
+</html>
